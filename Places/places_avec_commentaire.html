@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>PicSearch Places</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: Verdana, Geneva, sans-serif;
+        font-size: 10px;
+        color: #3D180A;
+        background-color: #26404C;
+      }
+      #map /*la carte doit remplir 100% de son conteneur */ {
+        height: 100%;
+        width: 100%;
+      }
+      #tableau {
+        width: 100%; /* le tableau fait la largeur de la page */
+        height: 120px;
+        overflow: auto; /* permet de scroller dans la div */
+        overflow-y: hidden; /* cache la scrollbar verticale */
+        background-color: #A68D78;
+              }
+
+      .tab_img img {
+        width: 65px;
+              }
+    </style>
+
+    <!-- J'utilise l'API Google Maps qu'on peut trouver sur le site de Google.
+    Afin de récupérer la longitude et la latitude pour center la carte sur
+    les coordonnées des photos, j'ajoute au script initMap (qui affiche la carte)
+    les paramétres "la" et "lg". Dans le programme LUA, au moment de concaténer
+    la balise img correspondant aux images, il faudra simplement remplacer "la"
+    et "lg" par des variables qui contiennent la latitude et la longitude.
+    Ca donne, en Javascript : "function initMap (la,lg)"
+    en HTML : "<img onclick="initMap(48.084084,-1.346433)"
+    en LUA : "[[<img onclick="initMap(]]..longitude..[[,]]..latitude..[[" src="#">]] -->
+
+    <script>
+var map;
+var infoWindow;
+var service;
+
+function initMap(la,lg) {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: {lat: la,lng: lg},
+    zoom: 15,
+    styles: [{
+      stylers: [{ visibility: 'simplified' }]
+    }, {
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }]
+    }]
+  });
+
+  infoWindow = new google.maps.InfoWindow();
+  service = new google.maps.places.PlacesService(map);
+
+  // The idle event is a debounced event, so we can query & listen without
+  // throwing too many requests at the server.
+  map.addListener('idle', performSearch);
+}
+
+function performSearch() {
+  var request = {
+    bounds: map.getBounds(),
+    types:'store'
+  };
+  service.radarSearch(request, callback);
+}
+
+function callback(results, status) {
+  if (status !== google.maps.places.PlacesServiceStatus.OK) {
+    console.error(status);
+    return;
+  }
+  for (var i = 0, result; result = results[i]; i++) {
+    addMarker(result);
+  }
+}
+
+function addMarker(place) {
+  var marker = new google.maps.Marker({
+    map: map,
+    position: place.geometry.location,
+    icon: {
+      url: 'http://maps.gstatic.com/mapfiles/circle.png',
+      anchor: new google.maps.Point(10, 10),
+      scaledSize: new google.maps.Size(10, 17)
+    }
+  });
+
+  google.maps.event.addListener(marker, 'click', function() {
+    service.getDetails(place, function(result, status) {
+      if (status !== google.maps.places.PlacesServiceStatus.OK) {
+        console.error(status);
+        return;
+      }
+      infoWindow.setContent(result.name);
+      infoWindow.open(map, marker);
+    });
+  });
+}
+
+    </script>
+  </head>
+  <body>
+      <div id="tableau">
+      <table>
+          <tr>
+              <th class="tab_img"><a href='#' onclick='initMap(48.1141283,-1.6403082)'><img src='http://prototypel1.irisa.fr/files/3e42176355d3fc94431d2873655095ca/thumb_584a75a965df6.jpg'></a></th>
+              <th class="tab_img"><a href='#' onclick='initMap(48.1141283,-1.6403082)'><img src='http://prototypel1.irisa.fr/files/3e42176355d3fc94431d2873655095ca/icon_584a75d1b20dd.jpg'></a></th>
+              <th class="tab_img"><a href='#' onclick='initMap(48.1141283,-1.6403082)'><img src='http://prototypel1.irisa.fr/files/3e42176355d3fc94431d2873655095ca/icon_584a75f28f338.jpg'></a></th>
+              <th class="tab_img"><a href='#' onclick='initMap(48.1141283,-1.6403082)'><img src='http://prototypel1.irisa.fr/files/3e42176355d3fc94431d2873655095ca/icon_584a8c6ca8a6d.jpg'></a></th>
+              <th class="tab_img"><a href='#' onclick='initMap(48.005459,0.200013)'><img src='http://prototypel1.irisa.fr/files/3e42176355d3fc94431d2873655095ca/icon_585010d7e2c76.jpg'></a></th>
+              <th class="tab_img"><a href='#' onclick='initMap(48.841158,2.356015)'><img src='http://prototypel1.irisa.fr/files/3e42176355d3fc94431d2873655095ca/icon_58501112eba95.jpg'></a></th>
+          </tr>
+          <tr>
+              <th>Pas de titre :(</th>
+              <th>Pas de titre :(</th>
+              <th>Pas de titre :(</th>
+              <th>Gueule de con</th>
+              <th>SLT SA VA</th>
+              <th>COUCOU</th>
+          </tr>
+          </table>
+      </div>
+          <div id="map"></div>
+ <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBip2lL-N4rOZGo1rd03sSvv6yL5crxKF0&callback=initMap&libraries=places&language=fr,visualization" async defer></script>
+  </body>
+</html>
